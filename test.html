@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+    <title>无标题文档</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <style type="text/css">
+        #map { height: 500px; }
+    </style>
+</head>
+
+<body>
+<div id="map"></div>
+<script type="text/javascript">
+    //获取切片数据的URL，x,y是切片的坐标，z是缩放级别
+    var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        osm = L.tileLayer(osmUrl, {
+            maxZoom: 17,
+            attribution: 'Li &copy; <a href="#">LiOpen</a> contributors'
+        });
+    //创建map对象,设置地图中心和缩放级别
+    var map = L.map('map');
+    map.setView([50.5, 30.51], 8);
+    map.addLayer(osm);
+
+    //创建marker,添加标注，添加弹出气泡
+    var marker = new L.Marker(new L.latLng(50.5, 30.51));
+    marker.bindPopup('这个是infowindow对象');//创建infowindow
+    map.addLayer(marker);
+
+    //添加圆形，添加弹出气泡
+    var circle = L.circle([50.1, 30], 500, {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0.5
+    }).addTo(map);
+    circle.bindPopup("I am a circle.").openPopup();
+
+    //添加多边形，添加弹出气泡
+    var polygon = L.polygon([
+        [51.509, 32],
+        [51.503, 32.5],
+        [51.69, 32.6]
+    ]).addTo(map);
+
+
+    //处理事件
+    var popup = L.popup()
+        .setLatLng([51.5, 30])
+        .setContent("I am a popup.")
+        .openOn(map);
+
+    var popup2 = L.popup();
+    function onMapClick(e) {
+        popup2
+            .setLatLng(e.latlng)
+            .setContent("You clicked the map at " + e.latlng.toString())
+            .openOn(map);
+    }
+    map.on('click', onMapClick);
+
+
+    L.geoJson(states, {
+        style: function(feature) {
+            switch (feature.properties.party) {
+                case 'Republican': return {color: "#ff0000"};
+                case 'Democrat':   return {color: "#0000ff"};
+            }
+        }
+    }).addTo(map);
+
+</script>
+
+
+</body>
+</html>
