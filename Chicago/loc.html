@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+    <title>loc</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script type="text/javascript" src="BoundariesPoliceBeats.geojson"></script>
+    <style type="text/css">
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        #map { height: 650px; }
+    </style>
+    <style>#map { width: 1200px; height: 650px; }
+    .info { padding: 6px 8px; font: 14px/16px Arial, Helvetica,
+    sans-serif; background: white; background: rgba(255,255,255,0.8);  box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
+    .legend { text-align: left; line-height: 18px; color: #777; }  .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }</style>
+</head>
+<script src="http://cdn.static.runoob.com/libs/jquery/1.10.2/jquery.min.js"></script>
+<body>
+<div id="map"></div>
+<script type="text/javascript">
+    $.getJSON("loc.json", function(count) {
+  $.getJSON("BoundariesPoliceBeats.geojson", function(data) {
+    var  statesData=data
+
+    var map = L.map('map').setView([41.8500, -87.7000], 11);
+
+    var info = L.control();
+    info.onAdd = function (map) {
+          this._div = L.DomUtil.create('div', 'info');
+          this.update();
+          return this._div;
+      };
+
+    info.update = function (props) {
+          this._div.innerHTML = '<h4>Chicago Divided by loc</h4>' +  (props ?
+              '<b>' + 'Beat: '+props + '</b><br>' +  ' Topic '+count[props]
+              :'');
+      };
+
+    info.addTo(map);
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+        maxZoom: 15,
+        attribution: 'UPC Map data',
+        id: 'mapbox.light'
+    }).addTo(map);
+
+    L.geoJson(statesData).addTo(map);
+    function getColor_loc(d) {
+          if (d == 0)  {return '#FFEDA0' }
+          else if (d ==1) {return '#BD0026' }
+          else if (d ==2) {return '#fc7327' }
+          else if (d ==3) {return '#fda44f' }
+          else {return '#ff1a1c'}
+
+
+      }
+	function style(feature) {
+        x=feature.properties.beat_num
+        y=count[x]
+
+		return {
+			weight: 1.5,
+			opacity: 1,
+			color: 'white',
+			dashArray: '3',
+			fillOpacity: 0.7,
+			fillColor: getColor_loc(y)
+		};
+
+	}
+
+	function highlightFeature(e) {
+		var layer = e.target;
+
+		layer.setStyle({
+			weight: 3,
+			color: '#666',
+			dashArray: '',
+			fillOpacity: 0.7
+		});
+
+		if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+			layer.bringToFront();
+		}
+		//console.log(e)
+
+		info.update(layer.feature.properties.beat_num);
+	}
+
+	var geojson;
+
+	function resetHighlight(e) {
+		geojson.resetStyle(e.target);
+		info.update();
+	}
+
+	function zoomToFeature(e) {
+		map.fitBounds(e.target.getBounds());
+	}
+
+	function onEachFeature(feature, layer) {
+		layer.on({
+			mouseover: highlightFeature,
+			mouseout: resetHighlight,
+			click: zoomToFeature
+		});
+	}
+
+	geojson = L.geoJson(statesData, {
+		style: style,
+		onEachFeature: onEachFeature
+	}).addTo(map);
+
+
+
+
+	var legend = L.control({position: 'bottomright'});
+
+	legend.onAdd = function (map) {
+
+		var div = L.DomUtil.create('div', 'info legend'),
+			grades = ['Topic 0','Topic 1','Topic 2','Topic 3','Topic 4'],
+
+            labels = [],
+			topic;
+
+		for (var i = 0; i < grades.length; i++) {
+			topic = grades[i];
+
+
+			labels.push(
+				'<i style="background:' + getColor_loc(i) + '"></i> ' +
+				topic);
+		}
+
+		div.innerHTML = labels.join('<br>');
+		return div;
+	};
+
+	legend.addTo(map);
+	 });
+    });
+</script>
+</body>
+</html>
